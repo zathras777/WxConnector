@@ -1,0 +1,17 @@
+WxConnector
+===========
+
+WxConnector is intended as a project to provide a client/server
+solution for collecting data from a weather station. The motivation
+was the arrival of a Vantage Vue weather station which has a nice
+console for everyday use but the solutions for collecting data
+didn't fit in with my requirments.
+
+My efforts to hack in data collection working as I wanted didn't work
+and so I decided to write this small project. 
+
+It's still in development and I have no idea where it'll end up,
+but the code is here and available for anyone else mad^H^H^Hbrave
+enough to try it :-)
+
+
