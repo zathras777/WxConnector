@@ -37,7 +37,8 @@ class TestCRC(unittest.TestCase):
         checks = [
             [ 0x20, 0x24, 0x62 ],
             [ 0x61, 0x7c, 0x87 ],
-            [ 49, 50, 51, 52, 53, 54, 55, 56, 57, 0x31, 0xc3 ]
+            [ 49, 50, 51, 52, 53, 54, 55, 56, 57, 0x31, 0xc3 ],
+            [ 16, 52, 9, 16, 1, 112, 98, 222 ]
         ]
         for ck in checks:
             self.assertEqual(crc_ccitt_16(ck), 0)

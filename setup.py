@@ -13,7 +13,7 @@ setup(
     license = "Apache License 2.0",
     keywords = "weather network serial",
     url = "http://www.david-reid.com/projects/wxconnector.html",
-    packages=['wxconnector'],
+    packages=['wxconnector', 'wxconnector.devices','wxconnector.utils'],
     long_description=read('README'),
     classifiers=[
         "Development Status :: 2 - Pre-Alpha",
@@ -21,5 +21,10 @@ setup(
         "License :: OSI Approved :: Apache Software License",
         "Programming Language :: Python",
     ],
+    entry_points = {
+        'console_scripts': [
+            'wxconnector = wxconnector.connector.main',
+        ],
+    },   
     test_suite='tests'
 )

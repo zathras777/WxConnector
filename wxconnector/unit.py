@@ -42,9 +42,9 @@ class WxUnit(object):
         try:
             fp = Decimal(10) ** -DECIMAL_PLACES[into]
         except KeyError:
-            fp = Decimal('1.')
+            fp = Decimal('1.0')
         try:
-            return Decimal(self._conversions[into](_value)).quantize(fp)
+            return float(Decimal(self._conversions[into](_value)).quantize(fp))
         except KeyError:
             return WxConversionUnavailable("Cannot convert from %s to %s" % (self.abbr, into))
 
@@ -101,12 +101,13 @@ def check_units(units, categories):
 # If values require decimal places, enter the number of decimal places
 # required below. If no decimals are required it should not appear.
 DECIMAL_PLACES = {
-  'inHg': 2, 'mbar': 1, 'hPa': 1
+  'inHg': 2, 'mbar': 1, 'hPa': 1, 'm': 2
 }
 
 UNIT_DATA = [
-  ('inHg', 'inches of Mercury', 'pressure', {'mbar' : lambda x : x * 33.86388640341,
-                            'hPa' :  lambda x : x * 33.86388640341}),
+  ('inHg', 'inches of Mercury', 'pressure', 
+                                {'mbar' : lambda x : x * 33.86388640341,
+                                 'hPa' :  lambda x : x * 33.86388640341}),
   ('mbar', 'millibars', 'pressure', {'inHg' : lambda x : x / 33.86388640341,
                                      'hPa' :  lambda x : x * 1}),
   ('hPa', 'hectopascals', 'pressure', {'inHg' : lambda x : x / 33.86388640341,
@@ -117,13 +118,20 @@ UNIT_DATA = [
                                    {'F': lambda x : x * (9.0/5.0) + 32.0}),
   ('in', 'inches', 'distance', 
                    {'cm': lambda x : x * 2.54, 'mm': lambda x : x * 25.4,
-                    'ft': lambda x: x / 12}),
+                    'ft': lambda x: x / 12, 'm': lambda x: x * 0.0254}),
   ('ft', 'feet', 'distance', 
                    {'in': lambda x: x * 12, 'cm': lambda x: x * 30.48, 
-                    'm': lambda x : x * 0.3048}),
+                    'm': lambda x : x * 0.3048, 'mm': lambda x: x * 300.48}),
+  ('m', 'metre', 'distance', 
+             {'in': lambda x : x * 39.3700787, 'mm': lambda x : x * 1000.0, 
+              'ft': lambda x: x * 3.2808399, 'cm': lambda x: x / 100}),
   ('cm', 'centimetre', 'distance', 
              {'in': lambda x : x * 0.393700787, 'mm': lambda x : x * 10.0, 
               'm': lambda x: x / 100, 'ft': lambda x: x * 0.032808399}),
+  ('mm', 'millimetre', 'distance',
+             {'cm': lambda x : x/ 10, 'm': lambda x : x / 1000,
+              'in': lambda x : x * 0.0393700787, 
+              'ft': lambda x: x * 0.0032808399 }),
   ('mph', 'miles per hour', 'speed', {'kph': lambda x : x * 1.609344,
          'mps':  lambda x : x * 0.44704, 'kn': lambda x : x * 0.868976242}),
   ('kph', 'kilometres per hour', 'speed', {'mph': lambda x : x / 1.609344,
@@ -132,5 +140,7 @@ UNIT_DATA = [
          'mph':  lambda x : x / 0.44704, 'kn': lambda x : x * 0.868976242}),
   ('kn', 'knots', 'speed', {'kph': lambda x : x * 1.609344,
          'mps':  lambda x : x * 0.44704, 'mph': lambda x : x / 0.868976242}),        
+  ('%', '%', 'percentage'),
+  ('deg', 'degree', 'direction'),
 ]
 

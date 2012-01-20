@@ -50,23 +50,23 @@ class TestCreation(unittest.TestCase):
         self.assertTrue('hPa' in mb.conversions_available())
         mb_checks = (
             (1000, 'hPa', 1000),
-            (1000, 'inHg', '29.53')
+            (1000, 'inHg', 29.53)
         )
         for ck in mb_checks:
-            self.assertEqual(mb.convert_value(ck[0], ck[1]), Decimal(ck[2]))
+            self.assertEqual(mb.convert_value(ck[0], ck[1]), ck[2])
 
     def test_003_conversion(self):
         cats, units = make_unit_data()
         cks = [
             ('C', 'F', 10, 50),
             ('F', 'C', 32, 0),
-            ('inHg', 'mbar', '29.92', '1013.2'),
-            ('hPa', 'inHg', '1033.1', '30.51'),
+            ('inHg', 'mbar', '29.92', 1013.2),
+            ('hPa', 'inHg', '1033.1', 30.51),
         ]
         for c in cks:
             cc = units[c[0]]
             _val = cc.convert_value(c[2], c[1])
-            self.assertEqual(_val, Decimal(c[3]))
+            self.assertEqual(_val, c[3])
             
 
     def test_004_formatting(self):
