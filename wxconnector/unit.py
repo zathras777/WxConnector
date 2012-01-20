@@ -35,16 +35,19 @@ class WxUnit(object):
         ''' Returns a list of units we can convert to '''
         return self._conversions.keys()
 
-    def convert_value(self, value, into):
+    def convert_value(self, value, into = ''):
         ''' Given a value, convert it into different units. Returns a
             Decimal formatted to correct number of decimal places. '''
         _value = float(Decimal(value))
+        _into = into or self.abbr
         try:
-            fp = Decimal(10) ** -DECIMAL_PLACES[into]
+            fp = Decimal(10) ** -DECIMAL_PLACES[_into]
         except KeyError:
-            fp = Decimal('1.0')
+            fp = Decimal('10') ** -3
+        if not into:
+            return float(Decimal(_value).quantize(fp))
         try:
-            return float(Decimal(self._conversions[into](_value)).quantize(fp))
+            return float(Decimal(self._conversions[_into](_value)).quantize(fp))
         except KeyError:
             return WxConversionUnavailable("Cannot convert from %s to %s" % (self.abbr, into))
 

@@ -72,11 +72,66 @@ class _PlainHiLo(object):
             self.hi_value.value = _val
             self.hi_when = when
 
+class _PlainAvg(object):
+    ''' Maintains records to allow calculation of the average value.
+        Measurements can be passed in any unit of a compatible type, 
+        but the result is always recorded in the unit of the initial
+        measurement.
+    '''
+    # todo This is overly niave and should take account of the time for
+    #      values.
+    def __init__(self):
+        self.sum_value = None
+        self.count = 0
+
+    def add(self, value):
+        if not self.sum_value:
+            self.sum_value = WxMeasurement(value.value, value.units)
+            self.count = 1
+        else:
+            _val = _convert_if_required(self.sum_value, value)
+            self.sum_value.value += _val
+            self.count += 1
+
+    def avg(self):
+        _val = float(self.sum_value.value) / self.count
+        return WxMeasurement(_val, self.sum_value.units)
+
+class _RmsAvg(object):
+    ''' Average a set of measurements using a Root Mean Square. '''
+    def __init__(self):
+        self.sum_value = None
+        self.count = 0
+
+    def add(self, value):
+        if not self.sum_value:
+            sq = value.value ** 2
+            self.sum_value = WxMeasurement(sq, value.units)
+            self.count = 1
+        else:
+            _val = _convert_if_required(self.sum_value, value) ** 2
+            self.sum_value.value += _val
+            self.count += 1
+
+    def avg(self):
+        _val = self.sum_value.units.convert_value(
+                              math.sqrt(self.sum_value.val() / self.count))
+        return WxMeasurement(_val, self.sum_value.units)
+    
+class _Wind(object):
+    ''' Maintains wind records, including hi/low for strength and an
+        averaged direction/speed. '''
+    def __init__(self):
+        self.hilo = _PlainHiLo()
+        self.speed_rms = _RmsAvg()
+        
 class BasicAccumulator(object):
     ''' Throw observations at it and it will accumulate statistics '''
     # Which readings do we record hi/low figures for?
     HILO = ['barometer','temperature','wind_speed','humidity','uv',
                                                          'solar_radiation']
+    # Which readings do we record an average for?
+    AVG = HILO
 
     def __init__(self):
         self.hilos = {}
@@ -95,9 +150,20 @@ class BasicAccumulator(object):
                 if not self.hilos.has_key(k):
                     self.hilos[k] = _PlainHiLo()
                 self.hilos[k].check(v, obs.when)
-        self.last = obs.when
+            if k in self.AVG:
+                if not self.avgs.has_key(k):
+                    self.avgs[k] = _PlainAvg()
+                self.avgs[k].add(v)
+                
+        if obs.when > self.last:
+            self.last = obs.when
         self.nobs += 1
 
+    @property
+    def timespan(self):
+        ''' Returns the timespan in seconds '''
+        return self.last - self.first
+        
     def get_lowest(self, what):
         hilo = self.hilos.get(what, None)
         if hilo:
@@ -113,6 +179,10 @@ class BasicAccumulator(object):
     def debug_print(self):
         print "BasicAccumulator: %d obsersvations" % self.nobs
         print "From %d to %d" % (self.first, self.last)
+        print "Averages"
+        for k in self.avgs.keys():
+            print "%30s %10s" % (k, self.avgs[k].avg())
+
         print "Highs/Lows"
         for k in self.hilos.keys():
             print "%30s %10s @ %d %10s @ %d" % (k, self.hilos[k].lo_value, 

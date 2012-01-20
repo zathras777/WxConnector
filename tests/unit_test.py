@@ -62,6 +62,7 @@ class TestCreation(unittest.TestCase):
             ('F', 'C', 32, 0),
             ('inHg', 'mbar', '29.92', 1013.2),
             ('hPa', 'inHg', '1033.1', 30.51),
+            ('inHg', 'hPa', 29.592, 1002.1),
         ]
         for c in cks:
             cc = units[c[0]]

@@ -19,7 +19,7 @@ from decimal import Decimal
 
 from wxconnector import WXUNITS
 from wxconnector.measurement import WxMeasurement, WxObservation
-from wxconnector.accumulator import _PlainHiLo, HiLoIncompatibleType, BasicAccumulator
+from wxconnector.accumulator import _PlainHiLo, _RmsAvg, HiLoIncompatibleType, BasicAccumulator
 
 class TestPlain(unittest.TestCase):
     def test_001_lo(self):
@@ -64,7 +64,14 @@ class TestPlain(unittest.TestCase):
             self.assertEqual(hi.hi_value.value, c[3])
             self.assertEqual(hi.hi_when, c[4])
 
-    def test_003_basic(self):
+    def test_003_rms(self):
+        rms = _RmsAvg()
+        for i in range(1, 11):
+            rms.add(WxMeasurement(i, 'C'))
+        _avg = rms.avg()
+        self.assertEqual(_avg.value, 6.2)
+        
+    def test_004_basic(self):
         ba = BasicAccumulator()
         self.assertNotEqual(ba, None)
         obs = WxObservation(121)
@@ -102,5 +109,7 @@ class TestPlain(unittest.TestCase):
         (val, when) = ba.get_highest('wind_speed')
         self.assertEqual(val, None)
 
+        self.assertEqual(ba.timespan, 4)
+                
 if __name__ == '__main__':
     unittest.main()
