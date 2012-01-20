@@ -101,7 +101,7 @@ def check_units(units, categories):
 # If values require decimal places, enter the number of decimal places
 # required below. If no decimals are required it should not appear.
 DECIMAL_PLACES = {
-  'inHg': 2, 'mbar': 1, 'hPa': 1, 'm': 2
+  'inHg': 2, 'mbar': 1, 'hPa': 1, 'm': 2, 'C': 1
 }
 
 UNIT_DATA = [

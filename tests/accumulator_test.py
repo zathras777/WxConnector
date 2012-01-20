@@ -18,8 +18,8 @@ import unittest
 from decimal import Decimal
 
 from wxconnector import WXUNITS
-from wxconnector.measurement import WxMeasurement
-from wxconnector.accumulator import _PlainHiLo, HiLoIncompatibleType
+from wxconnector.measurement import WxMeasurement, WxObservation
+from wxconnector.accumulator import _PlainHiLo, HiLoIncompatibleType, BasicAccumulator
 
 class TestPlain(unittest.TestCase):
     def test_001_lo(self):
@@ -28,8 +28,8 @@ class TestPlain(unittest.TestCase):
         initial = WxMeasurement(100, WXUNITS['mm'])
         self.assertNotEqual(initial, None)
         lo.check_lo(initial, ts)
-        self.assertEqual(lo.value.value, 100)
-        self.assertEqual(lo.when, 100)
+        self.assertEqual(lo.lo_value.value, 100)
+        self.assertEqual(lo.lo_when, 100)
         checks = [
           [ 99, 'mm', 110, 99, 110 ],
           [ 10, 'cm', 120, 99, 110 ],
@@ -39,8 +39,8 @@ class TestPlain(unittest.TestCase):
         for c in checks:
             _val = WxMeasurement(c[0], WXUNITS[c[1]])
             lo.check_lo(_val, c[2])
-            self.assertEqual(lo.value.value, c[3])
-            self.assertEqual(lo.when, c[4])
+            self.assertEqual(lo.lo_value.value, c[3])
+            self.assertEqual(lo.lo_when, c[4])
         incompat = WxMeasurement('20', WXUNITS['mph'])
         self.assertRaises(HiLoIncompatibleType, lo.check_lo, incompat, 100)
         
@@ -50,8 +50,8 @@ class TestPlain(unittest.TestCase):
         initial = WxMeasurement(1000, WXUNITS['hPa'])
         self.assertNotEqual(initial, None)
         hi.check_hi(initial, ts)
-        self.assertEqual(hi.value.value, 1000)
-        self.assertEqual(hi.when, 100)
+        self.assertEqual(hi.hi_value.value, 1000)
+        self.assertEqual(hi.hi_when, 100)
         checks = [
           [ 1000.1, 'hPa', 110, 1000.1, 110 ],
           [ 999.9, 'hPa', 120, 1000.1, 110 ],
@@ -61,8 +61,46 @@ class TestPlain(unittest.TestCase):
         for c in checks:
             _val = WxMeasurement(c[0], WXUNITS[c[1]])
             hi.check_hi(_val, c[2])
-            self.assertEqual(hi.value.value, c[3])
-            self.assertEqual(hi.when, c[4])
+            self.assertEqual(hi.hi_value.value, c[3])
+            self.assertEqual(hi.hi_when, c[4])
+
+    def test_003_basic(self):
+        ba = BasicAccumulator()
+        self.assertNotEqual(ba, None)
+        obs = WxObservation(121)
+        initial_m = [
+            ['temperature', 10.5, 'C'],
+            ['barometer', 1000.2, 'hPa'],
+        ]
+        for m in initial_m:
+            obs.add_measurement(m[0], m[1], m[2])
+        ba.add_observation(obs)
+        self.assertEqual(ba.nobs, 1)
+        
+        (val, when) = ba.get_highest('temperature')
+        self.assertEqual(when, 121)
+        self.assertEqual(val.value, 10.5)
+        
+        check_m = [
+            ['temperature', 9.5, 'C'],
+            ['barometer', 1000.3, 'hPa'],
+        ]
+        obs2 = WxObservation(125)
+        for m in check_m:
+            obs2.add_measurement(m[0], m[1], m[2])
+        ba.add_observation(obs2)
+        self.assertEqual(ba.nobs, 2)
+
+        (val, when) = ba.get_lowest('temperature')
+        self.assertEqual(when, 125)
+        self.assertEqual(val.value, 9.5)
+
+        (val, when) = ba.get_highest('barometer')
+        self.assertEqual(when, 125)
+        self.assertEqual(val.value, 1000.3)
+
+        (val, when) = ba.get_highest('wind_speed')
+        self.assertEqual(val, None)
 
 if __name__ == '__main__':
     unittest.main()
